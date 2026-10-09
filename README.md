@@ -18,14 +18,14 @@ To use these scripts, you will need to run them in your web browser's Developer 
 ### Step 2: Find Unwanted Licenses (`populate.js`)
 
 1. Open the `populate.js` file and copy all of its contents.
-2. Paste the code into the Console and press **Enter**.
+2. Paste the code into the Console and click the run button.
 3. The script will automatically page through your license history and find items that contain keywords like "demo", "trailer", "teaser", etc.
 4. Wait for the script to finish scanning. It will log a message saying: `Finished scanning. Found [X] items to remove.`
 
 ### Step 3: Remove the Licenses (`remove.js`)
 
 1. Once `populate.js` has finished running, open the `remove.js` file and copy all of its contents.
-2. Paste the code into the Console and press **Enter**.
+2. Paste the code into the Console and click the run button.
 3. The script will begin removing the identified items one by one.
 4. **Note:** Steam has rate limits for removing licenses. The script handles this automatically; if it hits a rate limit, it will pause for 10 minutes before continuing. Be patient and leave the tab open until it finishes logging `Removed all AppIds from account.`
 
