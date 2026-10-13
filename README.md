@@ -1,6 +1,6 @@
 # Steam Demo Cleaner
 
-A set of JavaScript console scripts to automatically scan for and remove unwanted free licenses (such as demos, trailers, and teasers) from your Steam account.
+A JavaScript console script to automatically scan for and remove unwanted free licenses (such as demos, trailers, and teasers) from your Steam account.
 
 ## Features
 
