@@ -67,6 +67,8 @@ async function removePackages(appIds) {
         return;
     }
 
+    let retryCount = 0;
+
     for (let i = 0; i < appIds.length;) {
         try {
             const response = await fetch("https://store.steampowered.com/account/removelicense", {
@@ -80,13 +82,45 @@ async function removePackages(appIds) {
                 "credentials": "include"
             });
 
+            // Check if redirected to login (session expired)
+            if (
+                (response.redirected && (response.url.includes("/login") || response.url.includes("login.steampowered.com"))) ||
+                response.status === 401 ||
+                response.status === 403
+            ) {
+                console.log("Steam session has expired. Please log in again and re-run the script.");
+                return;
+            }
+
             if (response.status !== 200) {
                 console.log(`Error: ${response.status} - ${response.statusText}`);
                 i++;
+                retryCount = 0;
                 continue;
             }
 
-            const data = await response.json();
+            const text = await response.text();
+            let data;
+
+            try {
+                data = JSON.parse(text);
+            } catch {
+                // If Steam returned HTML instead of JSON, the session has expired
+                if (text.trim().startsWith("<") || text.includes("login")) {
+                    console.log("Steam session has expired. Please log in again and re-run the script.");
+                    return;
+                }
+                console.log(`Failed to parse response for ${appIds[i]}`);
+                i++;
+                retryCount = 0;
+                continue;
+            }
+
+            // Check if Steam JSON response indicated login is required
+            if (data.requires_login) {
+                console.log("Steam session has expired. Please log in again and re-run the script.");
+                return;
+            }
 
             // Steam uses 84 for rate limiting
             if (data.success === 84) {
@@ -99,15 +133,24 @@ async function removePackages(appIds) {
                 // Add a small delay between requests to be gentle on Steam's API
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 i++;
+                retryCount = 0;
             }
             else {
                 console.log(`Failed to remove ${appIds[i]}: Unknown error (success = ${data.success})`);
                 i++;
+                retryCount = 0;
             }
         } catch (e) {
-            console.error(`Exception during removal of ${appIds[i]}:`, e);
-            // Add a 5 second delay before retrying
-            await new Promise(resolve => setTimeout(resolve, 5000));
+            console.log(`Exception during removal of ${appIds[i]}: ${e.message || e}`);
+            retryCount++;
+            if (retryCount >= 3) {
+                console.log(`Skipping ${appIds[i]} after 3 failed attempts.`);
+                i++;
+                retryCount = 0;
+            } else {
+                // Add a 5 second delay before retrying
+                await new Promise(resolve => setTimeout(resolve, 5000));
+            }
         }
     }
 
