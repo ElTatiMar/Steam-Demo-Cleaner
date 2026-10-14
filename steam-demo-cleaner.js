@@ -1,4 +1,15 @@
 async function populate() {
+    // Check if user is logged into Steam in the current window context
+    const hasSession = typeof window !== "undefined" &&
+        Boolean(window.g_sessionID) &&
+        ((window.g_steamID && window.g_steamID !== "0" && window.g_steamID !== false) ||
+            (typeof window.g_AccountID !== "undefined" && window.g_AccountID !== 0));
+
+    if (!hasSession) {
+        console.log("No active Steam session detected. Please log in to your Steam account and re-run the script.");
+        return null;
+    }
+
     var appIds = [];
     var nextHref = "";
     var hasMorePages = true;
@@ -11,14 +22,47 @@ async function populate() {
         console.log(`Fetching page ${pageNum}...`);
         try {
             const url = `https://store.steampowered.com/account/licenses/${nextHref}`;
-            const response = await fetch(url);
-            if (!response.ok) break;
+            const response = await fetch(url, { credentials: "include" });
+
+            // Check if redirected to login or unauthorized (session missing / expired)
+            if (
+                (response.redirected && (response.url.includes("/login") || response.url.includes("login.steampowered.com"))) ||
+                response.status === 401 ||
+                response.status === 403
+            ) {
+                const msg = pageNum === 1
+                    ? "No active Steam session detected. Please log in to your Steam account and re-run the script."
+                    : "Steam session has expired. Please log in again and re-run the script.";
+                console.log(msg);
+                return null;
+            }
+
+            if (!response.ok) {
+                console.log(`Error fetching page ${pageNum}: ${response.status} - ${response.statusText}`);
+                break;
+            }
 
             const text = await response.text();
             const doc = new DOMParser().parseFromString(text, 'text/html');
             const table = doc.querySelector(".account_table");
 
-            if (!table) break;
+            if (!table) {
+                // Check if Steam returned a login page instead of the licenses table
+                if (
+                    text.includes("login.steampowered.com") ||
+                    text.includes("id=\"login_btn\"") ||
+                    doc.querySelector("#loginForm") ||
+                    doc.querySelector("input[type='password']") ||
+                    (doc.querySelector(".global_action_link") && !doc.querySelector(".account_pulldown"))
+                ) {
+                    const msg = pageNum === 1
+                        ? "No active Steam session detected. Please log in to your Steam account and re-run the script."
+                        : "Steam session has expired. Please log in again and re-run the script.";
+                    console.log(msg);
+                    return null;
+                }
+                break;
+            }
 
             let rows = table.rows;
 
@@ -64,7 +108,7 @@ async function populate() {
 async function removePackages(appIds) {
     if (!appIds || appIds.length === 0) {
         console.log("No AppIds provided to remove.");
-        return;
+        return false;
     }
 
     let retryCount = 0;
@@ -89,7 +133,7 @@ async function removePackages(appIds) {
                 response.status === 403
             ) {
                 console.log("Steam session has expired. Please log in again and re-run the script.");
-                return;
+                return false;
             }
 
             if (response.status !== 200) {
@@ -108,7 +152,7 @@ async function removePackages(appIds) {
                 // If Steam returned HTML instead of JSON, the session has expired
                 if (text.trim().startsWith("<") || text.includes("login")) {
                     console.log("Steam session has expired. Please log in again and re-run the script.");
-                    return;
+                    return false;
                 }
                 console.log(`Failed to parse response for ${appIds[i]}`);
                 i++;
@@ -119,7 +163,7 @@ async function removePackages(appIds) {
             // Check if Steam JSON response indicated login is required
             if (data.requires_login) {
                 console.log("Steam session has expired. Please log in again and re-run the script.");
-                return;
+                return false;
             }
 
             // Steam uses 84 for rate limiting
@@ -155,14 +199,21 @@ async function removePackages(appIds) {
     }
 
     console.log("Removed all specified AppIds from account.");
+    return true;
 }
 
 (async function main() {
     const ids = await populate();
-    if (ids && ids.length > 0) {
+    if (ids === null) {
+        return;
+    }
+
+    if (ids.length > 0) {
         console.log("Starting removal process...");
-        await removePackages(ids);
-        console.log("All done!");
+        const success = await removePackages(ids);
+        if (success) {
+            console.log("All done!");
+        }
     } else {
         console.log("Nothing to remove.");
     }
