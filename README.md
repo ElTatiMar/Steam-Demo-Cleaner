@@ -37,6 +37,6 @@ To use these scripts, you will need to run them in your web browser's Developer 
 
 These are updated scripts based on [Remove All Demos From Account](https://steamcommunity.com/sharedfiles/filedetails/?id=2933330310) by Jazzverso.
 
-## Disclaimer 
+## Disclaimer
 
 Please use these scripts at your own risk. They will permanently remove the identified free licenses from your account.
