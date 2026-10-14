@@ -8,8 +8,9 @@ A JavaScript console script to automatically scan for and remove unwanted free l
 - **Keyword Filtering**: Targets common unwanted free license types like "demo", "trailer", "teaser", "pegi", and "esrb".
 - **All-in-One Execution**: The new `steam-demo-cleaner.js` script handles both finding and removing licenses seamlessly in one run.
 - **Smart Rate-Limit Handling**: Automatically pauses for 10 minutes when Steam's API rate limits (Code 84) are hit and resumes without user intervention.
+- **Session Expiry Recovery**: Detects expired Steam sessions mid-run, pauses safely without crashing or throwing SyntaxErrors, and automatically resumes once you log back in via another tab.
 - **Gentle on API**: Built-in delays between actions to prevent aggressive throttling.
-- **Resilient**: Captures network exceptions and automatically retries failed removals.
+- **Resilient**: Captures network exceptions, prevents infinite retry loops with retry limits, and automatically retries failed removals.
 
 ## How to Use
 
@@ -30,7 +31,7 @@ To use these scripts, you will need to run them in your web browser's Developer 
 2. Paste the code into the Console and press Enter (or click the run button).
 3. The script will automatically page through your license history and find items that contain keywords like "demo", "trailer", "teaser", etc.
 4. Once it finishes scanning, it will automatically begin removing the identified items one by one.
-5. **Note:** Steam has rate limits for removing licenses. The script handles this automatically; if it hits a rate limit, it will pause for 10 minutes before continuing. Be patient and leave the tab open until it finishes logging `Removed all specified AppIds from account.`
+5. **Note:** Steam has rate limits for removing licenses. The script handles this automatically; if it hits a rate limit, it will pause for 10 minutes before continuing. If your Steam login session expires during a long run, the script will pause safely and prompt you to log in in another tab; once you log in, it will automatically detect the renewed session and resume without losing your progress. Be patient and leave the tab open until it finishes logging `Finished processing all specified AppIds.`
 
 ## Credits
 
