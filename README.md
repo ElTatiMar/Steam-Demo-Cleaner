@@ -33,7 +33,7 @@ To use these scripts, you will need to run them in your web browser's Developer 
 4. Once it finishes scanning, it will automatically begin removing the identified items one by one.
 5. **Notes:**
    - **Rate Limits:** Steam has rate limits for removing licenses. The script handles this automatically; if it hits a rate limit, it will pause for 10 minutes before continuing. Be patient and leave the tab open until it finishes logging `Removed all specified AppIds from account.` and `All done!`.
-   - **Session Detection & Expiry:** The script verifies an active Steam session before scanning and detects expired sessions during both scanning and license removal. If no active session is found or if it expires mid-run, the script logs a prompt to log in again and halts cleanly—it will never falsely log `All done!`. Simply log back into your Steam account in your browser and re-run the script to resume where you left off.
+   - **Session Detection & Expiry:** The script verifies an active Steam session before scanning and detects expired sessions during both scanning and license removal. If no active session is found or if it expires mid-run, the script logs a prompt to log in again and halts cleanly—it will never falsely log `All done!`. Simply log back into your Steam account in your browser and re-run the script to restart the process and clean up any remaining licenses.
 
 ## Credits
 
